@@ -1,13 +1,13 @@
-import { ReactNode, useEffect } from "react";
-import { Client } from "@fungi-realtime/core";
-import { createContext, useContext } from "react";
+import type { ReactNode } from "react";
+import type { FungiClient } from "@fungi-realtime/core";
+import { createContext, useContext, useEffect } from "react";
 
 type ClientProviderProps = {
   children: ReactNode;
-  client: Client;
+  client: FungiClient;
 };
 
-let Context = createContext<Client | undefined>(undefined);
+let Context = createContext<FungiClient | undefined>(undefined);
 
 export function useClient() {
   let client = useContext(Context);
