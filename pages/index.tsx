@@ -1,6 +1,9 @@
 import Head from "next/head";
+import { useClient } from "../components/client-provider";
 
 export default function Home() {
+  let client = useClient();
+
   return (
     <div>
       <Head>
@@ -8,11 +11,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main>
-        <h1>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-      </main>
+      <div />
     </div>
   );
 }
