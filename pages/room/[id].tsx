@@ -1,9 +1,9 @@
-import { Channel, ServerEvents } from "@fungi-realtime/core";
 import Head from "next/head";
+import { ServerEvents } from "@fungi-realtime/core";
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect } from "react";
 import { useMutation } from "react-query";
-import { useFungiClient } from "../../components/fungi-client-provider";
+import { useSubscription } from "../../hooks/use-subscription";
 
 type MemberAdded = {
   id: string;
@@ -21,8 +21,10 @@ type MemberAddedMutationVariables = {
 export default function Room() {
   let router = useRouter();
   let { id: roomId } = router.query;
-  let fungi = useFungiClient();
-  let roomChannelRef = useRef<Channel>();
+  let roomChannel = useSubscription(`private-room-${roomId}`, {
+    enabled: !!roomId,
+  });
+
   let { mutate: addMember } = useMutation<
     MemberAdded,
     unknown,
@@ -63,8 +65,8 @@ export default function Room() {
     if (!roomId) return;
 
     removeMember({ roomId: roomId as string });
-    roomChannelRef.current?.unsubscribe();
-  }, [removeMember, roomId]);
+    roomChannel?.unsubscribe();
+  }, [removeMember, roomChannel, roomId]);
 
   useEffect(() => {
     window.addEventListener("beforeunload", leaveRoom);
@@ -76,26 +78,20 @@ export default function Room() {
   }, [leaveRoom]);
 
   useEffect(() => {
-    if (!roomId) return;
-
-    roomChannelRef.current = fungi.subscribe(`private-room-${roomId}`);
-  }, [fungi, leaveRoom, roomId]);
-
-  useEffect(() => {
-    roomChannelRef.current?.bind(ServerEvents.SUBSCRIPTION_SUCCEEDED, () => {
+    roomChannel?.bind(ServerEvents.SUBSCRIPTION_SUCCEEDED, () => {
       addMember({
         roomId: roomId as string,
       });
     });
 
-    roomChannelRef.current?.bind<MemberAdded>("member-added", ({ email }) => {
+    roomChannel?.bind<MemberAdded>("member-added", ({ email }) => {
       console.log(`Member with email ${email} added`);
     });
 
-    roomChannelRef.current?.bind<MemberRemoved>("member-removed", ({ id }) => {
+    roomChannel?.bind<MemberRemoved>("member-removed", ({ id }) => {
       console.log(`Member with id ${id} removed`);
     });
-  }, [addMember, roomId]);
+  }, [addMember, roomChannel, roomId]);
 
   return (
     <div className="bg-gray-900 min-h-screen">

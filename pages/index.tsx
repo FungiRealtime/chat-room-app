@@ -1,11 +1,10 @@
-import { Channel } from "@fungi-realtime/core";
 import Head from "next/head";
 import Link from "next/link";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect } from "react";
 import { useQueryClient } from "react-query";
-import { useFungiClient } from "../components/fungi-client-provider";
 import { withAuthenticationRequired } from "../components/with-auth";
 import { useRoomsQuery, roomsQueryKey } from "../hooks/use-rooms-query";
+import { useSubscription } from "../hooks/use-subscription";
 import { RoomWithMembersCount } from "./api/rooms";
 
 type MemberAddedOrRemoved = {
@@ -14,10 +13,9 @@ type MemberAddedOrRemoved = {
 };
 
 function Home() {
-  let fungi = useFungiClient();
   let queryClient = useQueryClient();
   let { data: rooms } = useRoomsQuery();
-  let roomsChannelRef = useRef<Channel>();
+  let roomsChannel = useSubscription("private-rooms");
 
   let onMemberAddedOrRemoved = useCallback(
     async ({ membersCount, roomId }: MemberAddedOrRemoved) => {
@@ -47,15 +45,7 @@ function Home() {
   );
 
   useEffect(() => {
-    roomsChannelRef.current = fungi.subscribe("private-rooms");
-
-    return () => {
-      roomsChannelRef.current?.unsubscribe();
-    };
-  }, [fungi]);
-
-  useEffect(() => {
-    roomsChannelRef.current?.bind<RoomWithMembersCount>(
+    roomsChannel?.bind<RoomWithMembersCount>(
       "new-room",
       async (newRoom) => {
         console.log("new-room");
@@ -74,16 +64,16 @@ function Home() {
       { replace: true }
     );
 
-    roomsChannelRef.current?.bind<MemberAddedOrRemoved>(
+    roomsChannel?.bind<MemberAddedOrRemoved>(
       "member-added",
       onMemberAddedOrRemoved
     );
 
-    roomsChannelRef.current?.bind<MemberAddedOrRemoved>(
+    roomsChannel?.bind<MemberAddedOrRemoved>(
       "member-removed",
       onMemberAddedOrRemoved
     );
-  }, [onMemberAddedOrRemoved, queryClient]);
+  }, [onMemberAddedOrRemoved, queryClient, roomsChannel]);
 
   return (
     <div className="min-h-screen bg-gray-900">

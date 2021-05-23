@@ -23,17 +23,19 @@ export let withAuthenticationRequired = <P extends object>(
   options: WithAuthenticationRequiredOptions = {}
 ) => {
   return function WithAuthenticationRequired(props: P) {
-    let router = useRouter();
+    let { user, loading } = useAuth();
     let { onAuthenticating = defaultOnAuthenticating } = options;
-    let { user } = useAuth();
+    let router = useRouter();
 
     useEffect(() => {
+      if (loading) return;
+
       if (!user) {
         router.push("/login");
       }
-    }, [router, user]);
+    }, [loading, router, user]);
 
-    let success = !!user;
+    let success = !!user && !loading;
     return success ? <Component {...props} /> : onAuthenticating();
   };
 };
