@@ -1,5 +1,12 @@
 import { Magic } from "magic-sdk";
 
-let m = new Magic(process.env.MAGIC_API_KEY!);
+let createMagic = () => {
+  return (
+    typeof window != "undefined" &&
+    new Magic(process.env.NEXT_PUBLIC_MAGIC_PUBLISHABLE_KEY!)
+  );
+};
 
-export { m };
+let magic = createMagic() as Magic;
+
+export { magic };

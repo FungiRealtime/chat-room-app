@@ -7,5 +7,28 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["orderByRelation"]
+}
+
+model Room {
+  id        String       @id @default(uuid())
+  name      String       @unique
+  createdAt DateTime     @default(now())
+  members   RoomMember[]
+  owner     RoomOwner    @relation(fields: [ownerId], references: [id])
+  ownerId   String
+}
+
+model RoomOwner {
+  id    String @id @default(uuid())
+  email String
+  room  Room?
+}
+
+model RoomMember {
+  id     String @id @default(uuid())
+  email  String
+  room   Room   @relation(fields: [roomId], references: [id])
+  roomId String
 }
