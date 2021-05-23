@@ -1,44 +1,89 @@
-import type { Room } from ".prisma/client";
+import { Channel } from "@fungi-realtime/core";
 import Head from "next/head";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useQueryClient } from "react-query";
-import { useAuth } from "../components/auth-provider";
 import { useFungiClient } from "../components/fungi-client-provider";
-import { LoadingAuth } from "../components/loading-auth";
+import { withAuthenticationRequired } from "../components/with-auth";
 import { useRoomsQuery, roomsQueryKey } from "../hooks/use-rooms-query";
+import { RoomWithMembersCount } from "./api/rooms";
 
-export default function Home() {
+type MemberAddedOrRemoved = {
+  roomId: string;
+  membersCount: number;
+};
+
+function Home() {
   let fungi = useFungiClient();
   let queryClient = useQueryClient();
-  let { loading, user } = useAuth();
-  let { data: rooms } = useRoomsQuery({
-    enabled: !!user,
-  });
+  let { data: rooms } = useRoomsQuery();
+  let roomsChannelRef = useRef<Channel>();
+
+  let onMemberAddedOrRemoved = useCallback(
+    async ({ membersCount, roomId }: MemberAddedOrRemoved) => {
+      await queryClient.cancelQueries(roomsQueryKey);
+
+      queryClient.setQueryData<RoomWithMembersCount[]>(
+        roomsQueryKey,
+        (previousRooms) => {
+          return (previousRooms ?? [])
+            .map((room) => {
+              if (room.id === roomId) {
+                return {
+                  ...room,
+                  membersCount,
+                };
+              }
+
+              return room;
+            })
+            .sort((a, b) => {
+              return b.membersCount - a.membersCount;
+            });
+        }
+      );
+    },
+    [queryClient]
+  );
 
   useEffect(() => {
-    if (!user) return;
+    roomsChannelRef.current = fungi.subscribe("private-rooms");
 
-    let roomsChannel = fungi.subscribe("private-rooms");
+    return () => {
+      roomsChannelRef.current?.unsubscribe();
+    };
+  }, [fungi]);
 
-    roomsChannel.bind<Room>(
+  useEffect(() => {
+    roomsChannelRef.current?.bind<RoomWithMembersCount>(
       "new-room",
       async (newRoom) => {
+        console.log("new-room");
+
         // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
         await queryClient.cancelQueries(roomsQueryKey);
 
-        queryClient.setQueryData<Room[]>(roomsQueryKey, (previousRooms) => {
-          let updatedRooms = [...(previousRooms ?? []), newRoom];
-          return updatedRooms;
-        });
+        queryClient.setQueryData<RoomWithMembersCount[]>(
+          roomsQueryKey,
+          (previousRooms) => {
+            let updatedRooms = [...(previousRooms ?? []), newRoom];
+            return updatedRooms;
+          }
+        );
       },
       { replace: true }
     );
-  }, [fungi, queryClient, user]);
 
-  if (loading || !user) {
-    return <LoadingAuth />;
-  }
+    roomsChannelRef.current?.bind<MemberAddedOrRemoved>(
+      "member-added",
+      onMemberAddedOrRemoved
+    );
+
+    roomsChannelRef.current?.bind<MemberAddedOrRemoved>(
+      "member-removed",
+      onMemberAddedOrRemoved
+    );
+  }, [onMemberAddedOrRemoved, queryClient]);
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -83,3 +128,5 @@ export default function Home() {
     </div>
   );
 }
+
+export default withAuthenticationRequired(Home);

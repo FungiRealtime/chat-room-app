@@ -1,5 +1,5 @@
-import prisma from "../../lib/prisma";
-import { authorize, ncWithSession } from "../../lib/session";
+import prisma from "../../../lib/prisma";
+import { authorize, ncWithSession } from "../../../lib/session";
 
 export type RoomWithMembersCount = {
   id: string;

@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@fungi-realtime/core": "^1.2.0",
-    "@fungi-realtime/node": "^0.3.2",
+    "@fungi-realtime/node": "^0.4.0",
     "@magic-sdk/admin": "^1.3.0",
     "@prisma/client": "^2.23.0",
     "magic-sdk": "^4.3.0",
