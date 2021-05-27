@@ -73,9 +73,7 @@ function Room() {
     if (!id || !isSubscribed || user?.currentRoom?.id === id) return;
 
     joinRoom({ roomId: id });
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, isSubscribed, joinRoom]);
+  }, [id, isSubscribed, joinRoom, user?.currentRoom?.id]);
 
   return (
     <div>

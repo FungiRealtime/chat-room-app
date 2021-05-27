@@ -2,34 +2,25 @@ import Head from "next/head";
 import Link from "next/link";
 import { useCallback, useEffect } from "react";
 import { useQueryClient } from "react-query";
-import { useAuth } from "../components/auth-provider";
 import { withAuthenticationRequired } from "../components/with-auth";
 import { useRoomsQuery, roomsQueryKey } from "../hooks/use-rooms-query";
 import { useSubscription } from "../hooks/use-subscription";
-import { UserSession } from "../lib/session";
 import { RoomsQuery } from "../pages/api/rooms";
 
-type UserLeftRoom = {
+type UserLeftOrJoinedRoom = {
   roomId: string;
-  numPeopleInside: number;
-};
-
-type UserJoinedRoom = {
-  roomId: string;
-  roomName: string;
   numPeopleInside: number;
 };
 
 function Home() {
   let queryClient = useQueryClient();
-  let { setAuth } = useAuth();
   let { channel } = useSubscription("private-rooms", { staySubscribed: true });
   let { data: rooms } = useRoomsQuery({
     staleTime: Infinity,
   });
 
-  let onUserLeftRoom = useCallback(
-    async ({ roomId, numPeopleInside }: UserLeftRoom) => {
+  let onUserLeftOrJoinedRoom = useCallback(
+    async ({ roomId, numPeopleInside }: UserLeftOrJoinedRoom) => {
       await queryClient.cancelQueries(roomsQueryKey);
 
       queryClient.setQueryData<RoomsQuery>(roomsQueryKey, (previousRooms) => {
@@ -43,47 +34,23 @@ function Home() {
     [queryClient]
   );
 
-  let onUserJoinedRoom = useCallback(
-    async ({ roomId, roomName, numPeopleInside }: UserJoinedRoom) => {
-      await queryClient.cancelQueries(roomsQueryKey);
-
-      queryClient.setQueryData<RoomsQuery>(roomsQueryKey, (previousRooms) => {
-        return (previousRooms ?? [])
-          .map((room) =>
-            room.id === roomId ? { ...room, numPeopleInside } : room
-          )
-          .sort((a, b) => b.numPeopleInside - a.numPeopleInside);
-      });
-
-      setAuth((previousAuth) => {
-        let updatedUser: UserSession | null = previousAuth.user
-          ? {
-              ...previousAuth.user,
-              currentRoom: {
-                id: roomId,
-                name: roomName,
-                numPeopleInside,
-              },
-            }
-          : previousAuth.user;
-
-        return {
-          ...previousAuth,
-          user: updatedUser,
-        };
-      });
-    },
-    [queryClient, setAuth]
-  );
-
   useEffect(() => {
-    channel?.bind<UserLeftRoom>("user-left-room", onUserLeftRoom, {
-      replace: true,
-    });
-    channel?.bind<UserJoinedRoom>("user-joined-room", onUserJoinedRoom, {
-      replace: true,
-    });
-  }, [channel, onUserJoinedRoom, onUserLeftRoom]);
+    channel?.bind<UserLeftOrJoinedRoom>(
+      "user-left-room",
+      onUserLeftOrJoinedRoom,
+      {
+        replace: true,
+      }
+    );
+
+    channel?.bind<UserLeftOrJoinedRoom>(
+      "user-joined-room",
+      onUserLeftOrJoinedRoom,
+      {
+        replace: true,
+      }
+    );
+  }, [channel, onUserLeftOrJoinedRoom]);
 
   return (
     <div className="min-h-screen bg-gray-900">
