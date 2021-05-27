@@ -1,5 +1,4 @@
 import { useMutation } from "react-query";
-import { useAuth } from "../components/auth-provider";
 import { betterFetch } from "../lib/better-fetch";
 import { JoinRoomMutation } from "../pages/api/rooms/[id]/join";
 
@@ -8,11 +7,9 @@ export type JoinRoomVariables = {
 };
 
 export function useJoinRoomMutation() {
-  let { setAuth } = useAuth();
-
   return useMutation<JoinRoomMutation, unknown, JoinRoomVariables>(
     async (variables) => {
-      let { updatedUser } = await betterFetch<JoinRoomMutation>(
+      let data = await betterFetch<JoinRoomMutation>(
         `/api/rooms/${variables.roomId}/join`,
         {
           credentials: "include",
@@ -20,15 +17,7 @@ export function useJoinRoomMutation() {
         }
       );
 
-      return { updatedUser };
-    },
-    {
-      onSuccess: (data) => {
-        setAuth((previousAuth) => ({
-          ...previousAuth,
-          user: data.updatedUser,
-        }));
-      },
+      return data;
     }
   );
 }

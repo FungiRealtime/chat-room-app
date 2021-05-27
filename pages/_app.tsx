@@ -2,13 +2,14 @@ import "../styles/globals.css";
 import type { AppProps } from "next/app";
 import { Auth, AuthProvider } from "../components/auth-provider";
 import { FungiClient } from "@fungi-realtime/core";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { Hydrate } from "react-query/hydration";
 import { ReactQueryDevtools } from "react-query/devtools";
 import { FungiClientProvider } from "../components/fungi-client-provider";
 import { magic } from "../lib/magic";
+import { GlobalSubscriber } from "../components/global-subscriber";
 
 let wsAddress =
   process.env.NODE_ENV === "production" ? "..." : "ws://localhost:8080";
@@ -79,6 +80,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       <AuthProvider auth={{ loading: auth.loading, setAuth, user: auth.user }}>
         <QueryClientProvider client={queryClientRef.current}>
           <Hydrate state={pageProps.dehydratedState}>
+            <GlobalSubscriber />
             <Component {...pageProps} />
           </Hydrate>
           <ReactQueryDevtools />

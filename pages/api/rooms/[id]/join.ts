@@ -9,7 +9,7 @@ import {
 } from "../../../../lib/session";
 
 export type JoinRoomMutation = {
-  updatedUser: UserSession;
+  success: boolean;
 };
 
 type Query = {
@@ -130,6 +130,7 @@ export default ncWithSession()
           event: "user-joined-room",
           data: {
             roomId: updatedRoom.id,
+            roomName: updatedRoom.name,
             numPeopleInside: updatedRoom.numPeopleInside,
           },
         },
@@ -169,7 +170,7 @@ export default ncWithSession()
     });
 
     // Update the user's session.
-    let updatedUserSession = req.session.set<UserSession>("user", {
+    req.session.set<UserSession>("user", {
       email,
       createdAt,
       currentRoom: updatedUser.currentRoom,
@@ -182,6 +183,6 @@ export default ncWithSession()
     await fungi.triggerBatch(events);
 
     return res.json({
-      updatedUser: updatedUserSession,
+      success: true,
     });
   });

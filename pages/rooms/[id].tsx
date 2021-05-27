@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useAuth } from "../../components/auth-provider";
 import { withAuthenticationRequired } from "../../components/with-auth";
 import { useJoinRoomMutation } from "../../hooks/use-join-room-mutation";
@@ -24,10 +24,13 @@ function Room() {
   let { user } = useAuth();
   let { id } = router.query as Query;
   let { mutate: joinRoom, isIdle, isLoading } = useJoinRoomMutation();
+  let hasLeftRoom = useRef(false);
   let { channel, isSubscribing, isSubscribed } = useSubscription(
     `private-room-${id}`
   );
 
+  let shouldJoinRoom = !!id && isSubscribed && user?.currentRoom?.id !== id;
+  let hasJoinedRoom = !!id && isSubscribed && user?.currentRoom?.id === id;
   let isJoiningRoom =
     !id ||
     (user?.currentRoom?.id !== id && (isIdle || isLoading || isSubscribing));
@@ -37,9 +40,12 @@ function Room() {
       // If the current user left the room from another device/tab then
       // redirect to /.
       if (userEmail === user?.email) {
+        hasLeftRoom.current = true;
         router.push("/");
+        return;
       }
 
+      // TODO: Update room members
       console.log(
         `User with email ${userEmail} left the room and now there's ${numPeopleInside} people inside.`
       );
@@ -49,6 +55,7 @@ function Room() {
 
   let onUserJoinedRoom = useCallback(
     ({ userEmail, numPeopleInside }: UserJoinedRoom) => {
+      // TODO: Update room members
       console.log(
         `User with email ${userEmail} joined the room and now there's ${numPeopleInside} people inside.`
       );
@@ -70,15 +77,15 @@ function Room() {
   // the user's current room is this one, if it is then we'll do nothing
   // however if it isn't, we'll join the user to this room.
   useEffect(() => {
-    if (!id || !isSubscribed || user?.currentRoom?.id === id) return;
+    if (hasLeftRoom.current || !shouldJoinRoom) return;
 
     joinRoom({ roomId: id });
-  }, [id, isSubscribed, joinRoom, user?.currentRoom?.id]);
+  }, [id, joinRoom, shouldJoinRoom]);
 
   return (
     <div>
       {isJoiningRoom && <p>Loading...</p>}
-      {isSubscribed && <p>Welcome to room {id}!</p>}
+      {hasJoinedRoom && <p>Welcome to room {id}!</p>}
     </div>
   );
 }
