@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import type { Session } from "next-iron-session";
 import { ironSession } from "next-iron-session";
 import nc, { NextHandler } from "next-connect";
+import { Room } from "@prisma/client";
 
 export const SESSION_TTL = 157680000; // 5 years
 
@@ -20,7 +21,8 @@ type RequestWithSession = NextApiRequest & {
 
 export type UserSession = {
   email: string;
-  issuer: string;
+  currentRoom: { id: string; name: string; numPeopleInside: number } | null;
+  createdAt: Date;
 };
 
 export function ncWithSession() {

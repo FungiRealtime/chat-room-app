@@ -11,24 +11,23 @@ generator client {
   previewFeatures = ["orderByRelation"]
 }
 
+model User {
+  id             String   @id @default(uuid())
+  email          String   @unique
+  creatorOfRooms Room[]   @relation("Creator")
+  currentRoom    Room?    @relation(fields: [currentRoomId], references: [id])
+  currentRoomId  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
 model Room {
-  id        String       @id @default(uuid())
-  name      String       @unique
-  createdAt DateTime     @default(now())
-  members   RoomMember[]
-  owner     RoomOwner    @relation(fields: [ownerId], references: [id])
-  ownerId   String
-}
-
-model RoomOwner {
-  id    String @id @default(uuid())
-  email String
-  room  Room?
-}
-
-model RoomMember {
-  id     String @id @default(uuid())
-  email  String
-  room   Room   @relation(fields: [roomId], references: [id])
-  roomId String
+  id              String   @id @default(uuid())
+  name            String
+  numPeopleInside Int      @default(0)
+  creator         User     @relation("Creator", fields: [creatorId], references: [id])
+  creatorId       String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  peopleInside    User[]
 }

@@ -1,17 +1,16 @@
 import { useQuery, UseQueryOptions } from "react-query";
-import { RoomWithMembersCount } from "../pages/api/rooms";
+import { betterFetch } from "../lib/better-fetch";
+import { RoomsQuery } from "../pages/api/rooms";
 
 export let roomsQueryKey = "rooms";
 
-export function useRoomsQuery(
-  options?: UseQueryOptions<RoomWithMembersCount[]>
-) {
-  return useQuery<RoomWithMembersCount[]>(
+export function useRoomsQuery(options?: UseQueryOptions<RoomsQuery>) {
+  return useQuery<RoomsQuery>(
     roomsQueryKey,
     async () => {
-      let rooms = await fetch("/api/rooms", {
+      let rooms = await betterFetch<RoomsQuery>("/api/rooms", {
         credentials: "include",
-      }).then((res) => res.json());
+      });
 
       return rooms;
     },

@@ -1,5 +1,6 @@
 import { magic } from "../../lib/magic-admin";
-import { getUser, ncWithSession, UserSession } from "../../lib/session";
+import prisma from "../../lib/prisma";
+import { ncWithSession, UserSession } from "../../lib/session";
 
 export default ncWithSession().post(async (req, res) => {
   try {
@@ -16,14 +17,32 @@ export default ncWithSession().post(async (req, res) => {
         .json({ error: "Couldn't retrieve email or issuer, try again later." });
     }
 
-    req.session.set<UserSession>("user", {
+    let { createdAt, currentRoom } = await prisma.user.upsert({
+      where: { email },
+      update: {},
+      create: {
+        email,
+      },
+      select: {
+        createdAt: true,
+        currentRoom: {
+          select: {
+            id: true,
+            name: true,
+            numPeopleInside: true,
+          },
+        },
+      },
+    });
+
+    let user = req.session.set<UserSession>("user", {
       email,
-      issuer,
+      createdAt,
+      currentRoom,
     });
 
     await req.session.save();
 
-    let user = getUser(req);
     res.json(user);
   } catch (error) {
     res.status(500).json({ error: error.message });
