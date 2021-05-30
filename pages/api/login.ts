@@ -17,28 +17,22 @@ export default ncWithSession().post(async (req, res) => {
         .json({ error: "Couldn't retrieve email or issuer, try again later." });
     }
 
-    let { createdAt, currentRoom } = await prisma.user.upsert({
+    let { id, createdAt } = await prisma.user.upsert({
       where: { email },
       update: {},
       create: {
         email,
       },
       select: {
+        id: true,
         createdAt: true,
-        currentRoom: {
-          select: {
-            id: true,
-            name: true,
-            numPeopleInside: true,
-          },
-        },
       },
     });
 
     let user = req.session.set<UserSession>("user", {
+      id,
       email,
       createdAt,
-      currentRoom,
     });
 
     await req.session.save();

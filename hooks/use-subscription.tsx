@@ -4,7 +4,6 @@ import { useFungiClient } from "../components/fungi-client-provider";
 
 type UseSubcriptionOptions = {
   enabled?: boolean;
-  staySubscribed?: boolean;
 };
 
 enum SubscriptionStatus {
@@ -48,12 +47,10 @@ export function useSubscription(
     });
 
     return () => {
-      if (!options?.staySubscribed) {
-        channelRef.current?.unsubscribe();
-        setStatus(SubscriptionStatus.idle);
-      }
+      channelRef.current?.unsubscribe();
+      setStatus(SubscriptionStatus.idle);
     };
-  }, [channel, fungi, options?.enabled, options?.staySubscribed]);
+  }, [channel, fungi, options?.enabled]);
 
   return {
     channel: channelRef.current,

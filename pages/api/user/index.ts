@@ -1,4 +1,4 @@
-import { authorize, getUser, ncWithSession } from "../../lib/session";
+import { authorize, getUser, ncWithSession } from "../../../lib/session";
 
 export default ncWithSession()
   .use(authorize)

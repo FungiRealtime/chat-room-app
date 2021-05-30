@@ -18,6 +18,8 @@ function MyApp({ Component, pageProps }: AppProps) {
   let router = useRouter();
   let fungiClientRef = useRef<FungiClient>();
   let queryClientRef = useRef<QueryClient>();
+  let hasUpdatedSockets = useRef(false);
+  let [isConnectionEstablished, setIsConnectionEstablished] = useState(false);
 
   let [auth, setAuth] = useState<Auth>({
     loading: true,
@@ -27,6 +29,18 @@ function MyApp({ Component, pageProps }: AppProps) {
   let logout = () => {
     router.push("/login");
     magic.user.logout();
+  };
+
+  let updateSockets = () => {
+    fetch("/api/user/update-sockets", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        socketId: fungiClientRef.current?.socketId,
+      }),
+    });
   };
 
   let authenticate = async () => {
@@ -62,11 +76,21 @@ function MyApp({ Component, pageProps }: AppProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (!hasUpdatedSockets.current && auth.user && isConnectionEstablished) {
+      hasUpdatedSockets.current = true;
+      updateSockets();
+    }
+  }, [auth.user, isConnectionEstablished]);
+
   if (!fungiClientRef.current) {
     fungiClientRef.current = new FungiClient(wsAddress, {
       clientOnly: true,
       auth: {
         endpoint: "/api/fungi",
+      },
+      onConnectionEstablished: () => {
+        setIsConnectionEstablished(true);
       },
     });
   }
