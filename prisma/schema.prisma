@@ -12,11 +12,18 @@ generator client {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
+  id        String     @id @default(uuid())
+  email     String     @unique
   sockets   Socket[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status    UserStatus @default(OFFLINE)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+enum UserStatus {
+  ONLINE
+  IDLE
+  OFFLINE
 }
 
 model Socket {

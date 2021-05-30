@@ -1,3 +1,5 @@
+import { UserStatus } from ".prisma/client";
+import { fungi } from "../../lib/fungi";
 import { magic } from "../../lib/magic-admin";
 import prisma from "../../lib/prisma";
 import { ncWithSession, UserSession } from "../../lib/session";
@@ -17,17 +19,71 @@ export default ncWithSession().post(async (req, res) => {
         .json({ error: "Couldn't retrieve email or issuer, try again later." });
     }
 
-    let { id, createdAt } = await prisma.user.upsert({
+    let { socketId } = req.body;
+
+    let existingUser = await prisma.user.findUnique({
       where: { email },
-      update: {},
-      create: {
-        email,
-      },
       select: {
         id: true,
         createdAt: true,
       },
     });
+
+    let id, createdAt;
+
+    if (!existingUser) {
+      let newUser = await prisma.user.create({
+        data: {
+          email,
+          status: UserStatus.ONLINE,
+          sockets: {
+            create: {
+              id: socketId,
+            },
+          },
+        },
+        select: {
+          id: true,
+          email: true,
+          status: true,
+          createdAt: true,
+        },
+      });
+
+      id = newUser.id;
+      createdAt = newUser.createdAt;
+
+      await fungi.trigger("private-notifications", "new-user", {});
+    } else {
+      let updatedUser = await prisma.user.update({
+        where: { id: existingUser.id },
+        data: {
+          status: { set: UserStatus.ONLINE },
+          sockets: {
+            create: {
+              id: socketId,
+            },
+          },
+        },
+        select: {
+          id: true,
+          createdAt: true,
+          sockets: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+
+      id = updatedUser.id;
+      createdAt = updatedUser.createdAt;
+
+      // 1 socket means the user just came online.
+      if (updatedUser.sockets.length === 1) {
+        await fungi.trigger("private-notifications", "user-came-online", {});
+      }
+    }
 
     let user = req.session.set<UserSession>("user", {
       id,
@@ -37,8 +93,8 @@ export default ncWithSession().post(async (req, res) => {
 
     await req.session.save();
 
-    res.json(user);
+    return res.json(user);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 });

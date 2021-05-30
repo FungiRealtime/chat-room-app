@@ -7,5 +7,5 @@ export default ncWithSession()
     let socketId = req.body.socket_id;
     let channel = req.body.channel_name;
     let auth = fungi.authenticate(socketId, channel);
-    res.json(auth);
+    return res.json(auth);
   });

@@ -18,7 +18,6 @@ function MyApp({ Component, pageProps }: AppProps) {
   let router = useRouter();
   let fungiClientRef = useRef<FungiClient>();
   let queryClientRef = useRef<QueryClient>();
-  let hasUpdatedSockets = useRef(false);
   let [isConnectionEstablished, setIsConnectionEstablished] = useState(false);
 
   let [auth, setAuth] = useState<Auth>({
@@ -31,22 +30,17 @@ function MyApp({ Component, pageProps }: AppProps) {
     magic.user.logout();
   };
 
-  let updateSockets = () => {
-    fetch("/api/user/update-sockets", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        socketId: fungiClientRef.current?.socketId,
-      }),
-    });
-  };
-
-  let authenticate = async () => {
+  let authenticate = async (socketId: string) => {
     try {
-      let res = await fetch("/api/user", {
+      let res = await fetch("/api/user?refresh=true", {
         credentials: "include",
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          socketId,
+        }),
       });
 
       if (!res.ok) {
@@ -69,19 +63,14 @@ function MyApp({ Component, pageProps }: AppProps) {
   };
 
   useEffect(() => {
-    authenticate();
+    if (!isConnectionEstablished || !fungiClientRef.current?.socketId) return;
+
+    authenticate(fungiClientRef.current.socketId);
 
     // It's fine to ignore this rule here, if we included the router
     // in the dependency array then we would get an infinite loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (!hasUpdatedSockets.current && auth.user && isConnectionEstablished) {
-      hasUpdatedSockets.current = true;
-      updateSockets();
-    }
-  }, [auth.user, isConnectionEstablished]);
+  }, [isConnectionEstablished]);
 
   if (!fungiClientRef.current) {
     fungiClientRef.current = new FungiClient(wsAddress, {

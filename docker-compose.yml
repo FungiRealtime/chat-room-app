@@ -7,7 +7,7 @@ services:
       - 8080:8080
     environment:
       WEBHOOKS_SIGNING_SECRET: G5su7d2evERPtiw27bGayzz90XBL4HD0PJr5mY
-      WEBHOOKS_ENDPOINTS: http://172.27.123.144:3000/api/webhooks/fungi
+      WEBHOOKS_ENDPOINTS: http://172.27.112.84:3000/api/webhooks/fungi
       APP_SECRET: sRkg7MXtfXnHzxgnffP4y0zLNgKwtcqTFzqz
       APP_KEY: RariG72w8vj0oc2cZsHpBFWgg6TtwhKzg9XG
 

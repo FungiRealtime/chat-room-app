@@ -2,20 +2,22 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useAuth } from "../components/auth-provider";
+import { useFungiClient } from "../components/fungi-client-provider";
 import { magic } from "../lib/magic";
 import { UserSession } from "../lib/session";
 
 export default function Login() {
   let { user, setAuth, loading } = useAuth();
   let router = useRouter();
+  let fungiClient = useFungiClient();
   let [email, setEmail] = useState("");
 
   // Redirect to / if user is logged in.
   useEffect(() => {
-    if (user?.issuer) {
+    if (user) {
       router.push("/");
     }
-  }, [router, user?.issuer]);
+  }, [router, user]);
 
   let handleLogin = async () => {
     try {
@@ -35,6 +37,9 @@ export default function Login() {
           "Content-Type": "application/json",
           Authorization: "Bearer " + didToken,
         },
+        body: JSON.stringify({
+          socketId: fungiClient.socketId,
+        }),
       });
 
       if (res.ok) {
