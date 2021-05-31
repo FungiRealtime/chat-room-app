@@ -33,7 +33,10 @@ export default ncWithSession()
     if (!cursor) {
       userQueryResults = await prisma.user.findMany({
         take: PAGE_SIZE,
-        orderBy: [{ status: "asc" }, { id: "asc" }],
+        orderBy: [{ id: "asc" }],
+        where: {
+          NOT: { status: { equals: UserStatus.OFFLINE } },
+        },
         select: {
           id: true,
           email: true,
@@ -47,7 +50,10 @@ export default ncWithSession()
         cursor: {
           id: cursor,
         },
-        orderBy: [{ status: "asc" }, { id: "asc" }],
+        orderBy: [{ id: "asc" }],
+        where: {
+          NOT: { status: { equals: UserStatus.OFFLINE } },
+        },
         select: {
           id: true,
           email: true,

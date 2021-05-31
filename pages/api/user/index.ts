@@ -30,6 +30,7 @@ export default ncWithSession()
         select: {
           id: true,
           email: true,
+          status: true,
           createdAt: true,
           sockets: {
             select: {
@@ -45,7 +46,11 @@ export default ncWithSession()
 
       // 1 socket means the user just came online.
       if (refreshedUser.sockets.length === 1) {
-        await fungi.trigger("private-notifications", "user-came-online", {});
+        await fungi.trigger("private-notifications", "user-came-online", {
+          id: refreshedUser.id,
+          nickname: refreshedUser.email.split("@")[0],
+          status: refreshedUser.status,
+        });
       }
 
       user = req.session.set<UserSession>("user", {

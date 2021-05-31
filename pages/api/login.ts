@@ -21,74 +21,51 @@ export default ncWithSession().post(async (req, res) => {
 
     let { socketId } = req.body;
 
-    let existingUser = await prisma.user.findUnique({
+    let upsertedUser = await prisma.user.upsert({
       where: { email },
+      update: {
+        status: UserStatus.ONLINE,
+        sockets: {
+          create: {
+            id: socketId,
+          },
+        },
+      },
+      create: {
+        email,
+        status: UserStatus.ONLINE,
+        sockets: {
+          create: {
+            id: socketId,
+          },
+        },
+      },
       select: {
         id: true,
+        email: true,
+        status: true,
         createdAt: true,
+        sockets: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
-    let id, createdAt;
-
-    if (!existingUser) {
-      let newUser = await prisma.user.create({
-        data: {
-          email,
-          status: UserStatus.ONLINE,
-          sockets: {
-            create: {
-              id: socketId,
-            },
-          },
-        },
-        select: {
-          id: true,
-          email: true,
-          status: true,
-          createdAt: true,
-        },
+    // 1 socket means the user just came online.
+    if (upsertedUser.sockets.length === 1) {
+      await fungi.trigger("private-notifications", "user-came-online", {
+        id: upsertedUser.id,
+        nickname: upsertedUser.email.split("@")[0],
+        status: upsertedUser.status,
       });
-
-      id = newUser.id;
-      createdAt = newUser.createdAt;
-
-      await fungi.trigger("private-notifications", "new-user", {});
-    } else {
-      let updatedUser = await prisma.user.update({
-        where: { id: existingUser.id },
-        data: {
-          status: { set: UserStatus.ONLINE },
-          sockets: {
-            create: {
-              id: socketId,
-            },
-          },
-        },
-        select: {
-          id: true,
-          createdAt: true,
-          sockets: {
-            select: {
-              id: true,
-            },
-          },
-        },
-      });
-
-      id = updatedUser.id;
-      createdAt = updatedUser.createdAt;
-
-      // 1 socket means the user just came online.
-      if (updatedUser.sockets.length === 1) {
-        await fungi.trigger("private-notifications", "user-came-online", {});
-      }
     }
 
     let user = req.session.set<UserSession>("user", {
-      id,
-      email,
-      createdAt,
+      id: upsertedUser.id,
+      email: upsertedUser.email,
+      createdAt: upsertedUser.createdAt,
     });
 
     await req.session.save();
