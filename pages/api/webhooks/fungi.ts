@@ -68,7 +68,9 @@ export default nc<NextApiRequest, NextApiResponse>().post(async (req, res) => {
           },
         });
 
-        await fungi.trigger("private-notifications", "user-went-offline", {});
+        await fungi.trigger("private-notifications", "user-went-offline", {
+          id: user.id,
+        });
       }
     }
   }

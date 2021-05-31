@@ -27,6 +27,12 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   let logout = () => {
     router.push("/login");
+
+    fetch("/api/logout", {
+      credentials: "include",
+      method: "POST",
+    });
+
     magic.user.logout();
   };
 

@@ -1,12 +1,11 @@
 import Head from "next/head";
-import { Fragment, useEffect, useRef, useState } from "react";
-import { useInView } from "react-intersection-observer";
+import TextArea from "react-textarea-autosize";
+import { useRef, useState } from "react";
 import { useAuth } from "../components/auth-provider";
 import { SidebarUser } from "../components/sidebar-user";
 import { withAuthenticationRequired } from "../components/with-auth";
-import { useInfiniteUsers } from "../data/users/queries";
-import TextArea from "react-textarea-autosize";
 import { useSubscription } from "../hooks/use-subscription";
+import { useUsersQuery } from "../data/users/queries";
 
 function greetUser() {
   let date = new Date();
@@ -31,19 +30,13 @@ type Message = {
 
 function Home() {
   let { user } = useAuth();
-  let { data, fetchNextPage, hasNextPage } = useInfiniteUsers();
-  let { ref: loadMoreRef, inView: wantsToLoadMore } = useInView();
+  let { data } = useUsersQuery();
   let formRef = useRef<HTMLFormElement>(null);
+
   let { channel, isSubscribing, isSubscribed } =
     useSubscription("private-messages");
 
   let [messages, setMessages] = useState<Message[]>([]);
-
-  useEffect(() => {
-    if (wantsToLoadMore && hasNextPage) {
-      fetchNextPage();
-    }
-  }, [fetchNextPage, hasNextPage, wantsToLoadMore]);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900">
@@ -92,15 +85,9 @@ function Home() {
             style={{ maxHeight: "calc(100vh - 10.75rem)" }}
             className="space-y-4 min-w-[240px] w-[240px] scrollbar scrollbar-thumb-gray-600 scrollbar-track-gray-900 scrollbar-thin scrollbar-thumb-rounded"
           >
-            {data?.pages.map((page, i) => (
-              <Fragment key={i}>
-                {page.users.map((user) => (
-                  <SidebarUser key={user.id} user={user} />
-                ))}
-              </Fragment>
+            {data?.users.map((user) => (
+              <SidebarUser key={user.id} user={user} />
             ))}
-
-            <div ref={loadMoreRef} />
           </div>
         </div>
       </div>

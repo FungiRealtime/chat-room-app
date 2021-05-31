@@ -22,12 +22,7 @@ export function SidebarUser({ user }: SidebarUserProps) {
   let avatarBgColor = useMemo(() => randomColor(), []);
 
   return (
-    <div
-      className={clsx(
-        "flex space-x-3 items-center",
-        user.status === "OFFLINE" && "opacity-30"
-      )}
-    >
+    <div className="flex space-x-3 items-center">
       {/* User avatar */}
       <div
         className="relative uppercase rounded-full text-sm min-h-8 h-8 min-w-8 w-8 flex items-center justify-center"
@@ -40,19 +35,11 @@ export function SidebarUser({ user }: SidebarUserProps) {
             className={clsx(
               "w-2.5 h-2.5 rounded-full",
 
-              user.status === "ONLINE"
-                ? "bg-green-500"
-                : user.status === "OFFLINE"
-                ? "bg-gray-400"
-                : "bg-red-700"
+              user.status === "ONLINE" ? "bg-green-500" : "bg-red-700"
             )}
           />
           <span className="sr-only">
-            {user.status === "ONLINE"
-              ? "Online"
-              : user.status === "OFFLINE"
-              ? "Offline"
-              : "Idle"}
+            {user.status === "ONLINE" ? "Online" : "Idle"}
           </span>
         </div>
       </div>

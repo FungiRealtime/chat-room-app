@@ -40,10 +40,6 @@ export default ncWithSession()
         },
       });
 
-      if (!refreshedUser) {
-        return res.status(404).json({ error: "User not found." });
-      }
-
       // 1 socket means the user just came online.
       if (refreshedUser.sockets.length === 1) {
         await fungi.trigger("private-notifications", "user-came-online", {
