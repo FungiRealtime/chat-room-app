@@ -29,9 +29,11 @@ export default ncWithSession()
         },
         select: {
           id: true,
+          nickname: true,
           email: true,
           status: true,
           createdAt: true,
+          avatarColor: true,
           sockets: {
             select: {
               id: true,
@@ -44,15 +46,18 @@ export default ncWithSession()
       if (refreshedUser.sockets.length === 1) {
         await fungi.trigger("private-notifications", "user-came-online", {
           id: refreshedUser.id,
-          nickname: refreshedUser.email.split("@")[0],
+          nickname: refreshedUser.nickname,
           status: refreshedUser.status,
+          avatarColor: refreshedUser.avatarColor,
         });
       }
 
       user = req.session.set<UserSession>("user", {
         id: refreshedUser.id,
         email: refreshedUser.email,
+        nickname: refreshedUser.nickname,
         createdAt: refreshedUser.createdAt,
+        avatarColor: refreshedUser.avatarColor,
       });
 
       await req.session.save();

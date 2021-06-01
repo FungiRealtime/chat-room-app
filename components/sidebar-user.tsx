@@ -1,5 +1,4 @@
 import clsx from "clsx";
-import { useMemo } from "react";
 import { UsersQuery } from "../pages/api/users";
 
 type SidebarUserProps = {
@@ -7,26 +6,14 @@ type SidebarUserProps = {
 };
 
 let DARK = "#111827";
-function randomColor() {
-  let letters = "BCDEF".split("");
-  let color = "#";
-
-  for (let i = 0; i < 6; i++) {
-    color += letters[Math.floor(Math.random() * letters.length)];
-  }
-
-  return color;
-}
 
 export function SidebarUser({ user }: SidebarUserProps) {
-  let avatarBgColor = useMemo(() => randomColor(), []);
-
   return (
     <div className="flex space-x-3 items-center">
       {/* User avatar */}
       <div
         className="relative uppercase rounded-full text-sm min-h-8 h-8 min-w-8 w-8 flex items-center justify-center"
-        style={{ backgroundColor: avatarBgColor, color: DARK }}
+        style={{ backgroundColor: user.avatarColor, color: DARK }}
       >
         {user.nickname.slice(0, 2)}
 

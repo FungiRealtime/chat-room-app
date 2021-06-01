@@ -20,8 +20,10 @@ type RequestWithSession = NextApiRequest & {
 
 export type UserSession = {
   id: string;
+  nickname: string;
   email: string;
   createdAt: Date;
+  avatarColor: string;
 };
 
 export function ncWithSession() {

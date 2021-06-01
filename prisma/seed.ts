@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { createNicknameFromEmail } from "../lib/users";
 
 let prisma = new PrismaClient();
 
@@ -47,6 +48,7 @@ async function main() {
         update: {},
         create: {
           email,
+          nickname: createNicknameFromEmail(email),
         },
       })
     )

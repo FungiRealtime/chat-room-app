@@ -7,6 +7,7 @@ export type UsersQuery = {
     id: string;
     nickname: string;
     status: UserStatus;
+    avatarColor: string;
   }[];
 };
 
@@ -22,16 +23,18 @@ export default ncWithSession()
       },
       select: {
         id: true,
-        email: true,
+        nickname: true,
         status: true,
+        avatarColor: true,
       },
     });
 
     let users = userQueryResults.map<UsersQuery["users"][number]>((user) => {
       return {
         id: user.id,
-        nickname: user.email.split("@")[0],
+        nickname: user.nickname,
         status: user.status,
+        avatarColor: user.avatarColor,
       };
     });
 

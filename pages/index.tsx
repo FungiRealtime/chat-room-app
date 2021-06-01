@@ -1,11 +1,14 @@
 import Head from "next/head";
 import TextArea from "react-textarea-autosize";
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../components/auth-provider";
 import { SidebarUser } from "../components/sidebar-user";
 import { withAuthenticationRequired } from "../components/with-auth";
 import { useSubscription } from "../hooks/use-subscription";
 import { useUsersQuery } from "../data/users/queries";
+import { useMutation } from "react-query";
+import { betterFetch } from "../lib/better-fetch";
+import { UsersQuery } from "./api/users";
 
 function greetUser() {
   let date = new Date();
@@ -26,17 +29,54 @@ function greetUser() {
 
 type Message = {
   content: string;
+  author: Omit<UsersQuery["users"][number], "status">;
 };
 
 function Home() {
   let { user } = useAuth();
   let { data } = useUsersQuery();
-  let formRef = useRef<HTMLFormElement>(null);
+  let [content, setContent] = useState("");
 
   let { channel, isSubscribing, isSubscribed } =
     useSubscription("private-messages");
 
   let [messages, setMessages] = useState<Message[]>([]);
+
+  let sendMessageMutation = useMutation<unknown, unknown, Message>(
+    (newMessage) => {
+      return betterFetch("/api/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newMessage),
+      });
+    }
+  );
+
+  let handleSubmit = () => {
+    if (!user) return;
+
+    sendMessageMutation.mutate({
+      content,
+      author: {
+        id: user.id,
+        avatarColor: user.avatarColor,
+        nickname: user.nickname,
+      },
+    });
+  };
+
+  useEffect(() => {
+    channel?.bind<Message>("user-sent-message", ({ content, author }) => {
+      setMessages((currentMessages) => [
+        ...currentMessages,
+        { content, author },
+      ]);
+    });
+  }, [channel]);
+
+  console.log(messages);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900">
@@ -64,14 +104,24 @@ function Home() {
               <>
                 <div className="mt-4">Messages...</div>
 
-                <form ref={formRef} className="mt-auto">
+                <form
+                  className="mt-auto"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    handleSubmit();
+                  }}
+                >
                   <TextArea
                     onKeyPress={(event) => {
                       if (event.key === "Enter" && !event.shiftKey) {
                         event.preventDefault();
-                        formRef.current?.submit();
+                        handleSubmit();
                       }
                     }}
+                    name="content"
+                    required
+                    onChange={(e) => setContent(e.target.value)}
+                    maxLength={2000}
                     placeholder="Send a message"
                     className="w-full scrollbar resize-none scrollbar-thumb-gray-600 scrollbar-track-gray-900 scrollbar-thin scrollbar-thumb-rounded max-h-44 bg-gray-800 rounded p-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-500"
                   />

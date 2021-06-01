@@ -3,6 +3,7 @@ import { fungi } from "../../lib/fungi";
 import { magic } from "../../lib/magic-admin";
 import prisma from "../../lib/prisma";
 import { ncWithSession, UserSession } from "../../lib/session";
+import { createNicknameFromEmail, randomAvatarColor } from "../../lib/users";
 
 export default ncWithSession().post(async (req, res) => {
   try {
@@ -24,6 +25,7 @@ export default ncWithSession().post(async (req, res) => {
     let upsertedUser = await prisma.user.upsert({
       where: { email },
       update: {
+        nickname: createNicknameFromEmail(email),
         status: UserStatus.ONLINE,
         sockets: {
           create: {
@@ -33,7 +35,9 @@ export default ncWithSession().post(async (req, res) => {
       },
       create: {
         email,
+        nickname: createNicknameFromEmail(email),
         status: UserStatus.ONLINE,
+        avatarColor: randomAvatarColor(),
         sockets: {
           create: {
             id: socketId,
@@ -42,8 +46,10 @@ export default ncWithSession().post(async (req, res) => {
       },
       select: {
         id: true,
+        nickname: true,
         email: true,
         status: true,
+        avatarColor: true,
         createdAt: true,
         sockets: {
           select: {
@@ -57,15 +63,18 @@ export default ncWithSession().post(async (req, res) => {
     if (upsertedUser.sockets.length === 1) {
       await fungi.trigger("private-notifications", "user-came-online", {
         id: upsertedUser.id,
-        nickname: upsertedUser.email.split("@")[0],
+        nickname: upsertedUser.nickname,
         status: upsertedUser.status,
+        avatarColor: upsertedUser.avatarColor,
       });
     }
 
     let user = req.session.set<UserSession>("user", {
       id: upsertedUser.id,
+      nickname: upsertedUser.nickname,
       email: upsertedUser.email,
       createdAt: upsertedUser.createdAt,
+      avatarColor: upsertedUser.avatarColor,
     });
 
     await req.session.save();
