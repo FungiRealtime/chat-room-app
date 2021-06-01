@@ -1,6 +1,6 @@
 import { UserStatus } from "@prisma/client";
 import { QueryClient, useQuery } from "react-query";
-import { betterFetch } from "../../lib/better-fetch";
+import { betterFetch } from "../../client/utils/better-fetch";
 import { UsersQuery } from "../../pages/api/users";
 
 let queryKeys = {

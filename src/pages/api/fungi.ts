@@ -1,5 +1,5 @@
-import { fungi } from "../../lib/fungi";
-import { authorize, ncWithSession } from "../../lib/session";
+import { fungi } from "../../server/utils/fungi";
+import { authorize, ncWithSession } from "../../server/utils/session";
 
 export default ncWithSession()
   .use(authorize)

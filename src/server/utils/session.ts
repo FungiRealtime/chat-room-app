@@ -5,16 +5,18 @@ import nc, { NextHandler } from "next-connect";
 
 export const SESSION_TTL = 157680000; // 5 years
 
-export const session = ironSession({
+export let sessionOptions = {
   password: process.env.SESSION_PASSWORD!,
   cookieName: "fungi_session",
   cookieOptions: {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
   },
-});
+};
 
-type RequestWithSession = NextApiRequest & {
+export const session = ironSession(sessionOptions);
+
+export type RequestWithSession = NextApiRequest & {
   session: Session;
 };
 

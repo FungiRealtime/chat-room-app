@@ -1,14 +1,11 @@
 import Head from "next/head";
 import TextArea from "react-textarea-autosize";
 import { useEffect, useState } from "react";
-import { useAuth } from "../components/auth-provider";
-import { SidebarUser } from "../components/sidebar-user";
-import { withAuthenticationRequired } from "../components/with-auth";
-import { useSubscription } from "../hooks/use-subscription";
-import { useUsersQuery } from "../data/users/queries";
-import { useMutation } from "react-query";
-import { betterFetch } from "../lib/better-fetch";
-import { UsersQuery } from "./api/users";
+import { useAuth } from "../client/components/auth-provider";
+import { SidebarUser } from "../client/components/sidebar-user";
+import { withAuthenticationRequired } from "../client/components/with-auth";
+import { useSubscription } from "../client/hooks/use-subscription";
+import { trpc } from "../client/utils/trpc";
 
 function greetUser() {
   let date = new Date();
@@ -29,41 +26,27 @@ function greetUser() {
 
 type Message = {
   content: string;
-  author: Omit<UsersQuery["users"][number], "status">;
+  author: {
+    id: string;
+    avatarColor: string;
+    nickname: string;
+  };
 };
 
 function Home() {
   let { user } = useAuth();
-  let { data } = useUsersQuery();
+  let { data } = trpc.useQuery(["users"], { staleTime: Infinity });
   let [content, setContent] = useState("");
-
+  let [messages, setMessages] = useState<Message[]>([]);
+  let sendMessage = trpc.useMutation("sendMessage");
   let { channel, isSubscribing, isSubscribed } =
     useSubscription("private-messages");
-
-  let [messages, setMessages] = useState<Message[]>([]);
-
-  let sendMessageMutation = useMutation<unknown, unknown, Message>(
-    (newMessage) => {
-      return betterFetch("/api/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newMessage),
-      });
-    }
-  );
 
   let handleSubmit = () => {
     if (!user) return;
 
-    sendMessageMutation.mutate({
+    sendMessage.mutate({
       content,
-      author: {
-        id: user.id,
-        avatarColor: user.avatarColor,
-        nickname: user.nickname,
-      },
     });
   };
 
@@ -75,8 +58,6 @@ function Home() {
       ]);
     });
   }, [channel]);
-
-  console.log(messages);
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-900">

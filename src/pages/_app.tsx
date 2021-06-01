@@ -1,15 +1,15 @@
-import "../styles/globals.css";
+import "../../styles/globals.css";
 import type { AppProps } from "next/app";
-import { Auth, AuthProvider } from "../components/auth-provider";
+import { Auth, AuthProvider } from "../client/components/auth-provider";
 import { FungiClient } from "@fungi-realtime/core";
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
-import { QueryClient, QueryClientProvider } from "react-query";
-import { Hydrate } from "react-query/hydration";
+import { FungiClientProvider } from "../client/components/fungi-client-provider";
+import { magic } from "../client/utils/magic";
+import { GlobalSubscriber } from "../client/components/global-subscriber";
+import { withTRPC } from "@trpc/next";
 import { ReactQueryDevtools } from "react-query/devtools";
-import { FungiClientProvider } from "../components/fungi-client-provider";
-import { magic } from "../lib/magic";
-import { GlobalSubscriber } from "../components/global-subscriber";
+import { trpc } from "../client/utils/trpc";
 
 let wsAddress =
   process.env.NODE_ENV === "production" ? "..." : "ws://localhost:8080";
@@ -17,54 +17,38 @@ let wsAddress =
 function MyApp({ Component, pageProps }: AppProps) {
   let router = useRouter();
   let fungiClientRef = useRef<FungiClient>();
-  let queryClientRef = useRef<QueryClient>();
   let [isConnectionEstablished, setIsConnectionEstablished] = useState(false);
+  let authorize = trpc.useMutation("authorize");
+  let logout = trpc.useMutation("logout");
 
   let [auth, setAuth] = useState<Auth>({
     loading: true,
     user: null,
   });
 
-  let logout = () => {
-    router.push("/login");
-
-    fetch("/api/logout", {
-      credentials: "include",
-      method: "POST",
-    });
-
+  let logoutAndRedirect = async () => {
+    logout.mutate({});
     magic.user.logout();
+
+    router.push("/login");
   };
 
   let authenticate = async (socketId: string) => {
     try {
-      let res = await fetch("/api/user?refresh=true", {
-        credentials: "include",
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          socketId,
-        }),
+      let user = await authorize.mutateAsync({
+        socketId,
       });
-
-      if (!res.ok) {
-        logout();
-        return setAuth({
-          loading: false,
-          user: null,
-        });
-      }
-
-      let user = await res.json();
 
       setAuth({
         loading: false,
         user,
       });
     } catch (error) {
-      logout();
+      logoutAndRedirect();
+      return setAuth({
+        loading: false,
+        user: null,
+      });
     }
   };
 
@@ -90,23 +74,24 @@ function MyApp({ Component, pageProps }: AppProps) {
     });
   }
 
-  if (!queryClientRef.current) {
-    queryClientRef.current = new QueryClient();
-  }
-
   return (
     <FungiClientProvider client={fungiClientRef.current}>
       <AuthProvider auth={{ loading: auth.loading, setAuth, user: auth.user }}>
-        <QueryClientProvider client={queryClientRef.current}>
-          <Hydrate state={pageProps.dehydratedState}>
-            <GlobalSubscriber />
-            <Component {...pageProps} />
-          </Hydrate>
-          <ReactQueryDevtools />
-        </QueryClientProvider>
+        <GlobalSubscriber />
+        <Component {...pageProps} />
+        <ReactQueryDevtools />
       </AuthProvider>
     </FungiClientProvider>
   );
 }
 
-export default MyApp;
+export default withTRPC((_ctx) => {
+  let url =
+    process.env.NODE_ENV === "production"
+      ? `...`
+      : "http://localhost:3000/api/trpc";
+
+  return {
+    url,
+  };
+})(MyApp);

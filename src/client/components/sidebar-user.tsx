@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { UsersQuery } from "../pages/api/users";
+import { UsersQuery } from "../../pages/api/users";
 
 type SidebarUserProps = {
   user: UsersQuery["users"][number];

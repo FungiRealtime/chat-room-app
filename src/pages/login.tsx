@@ -1,16 +1,17 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { useAuth } from "../components/auth-provider";
-import { useFungiClient } from "../components/fungi-client-provider";
-import { magic } from "../lib/magic";
-import { UserSession } from "../lib/session";
+import { useAuth } from "../client/components/auth-provider";
+import { useFungiClient } from "../client/components/fungi-client-provider";
+import { magic } from "../client/utils/magic";
+import { trpc } from "../client/utils/trpc";
 
 export default function Login() {
   let { user, setAuth, loading } = useAuth();
   let router = useRouter();
   let fungiClient = useFungiClient();
   let [email, setEmail] = useState("");
+  let login = trpc.useMutation("login");
 
   // Redirect to / if user is logged in.
   useEffect(() => {
@@ -30,28 +31,17 @@ export default function Login() {
         email,
       });
 
-      // Validate didToken with server
-      let res = await fetch("/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + didToken,
-        },
-        body: JSON.stringify({
-          socketId: fungiClient.socketId,
-        }),
+      let user = await login.mutateAsync({
+        didToken: didToken!,
+        socketId: fungiClient.socketId!,
       });
 
-      if (res.ok) {
-        let user = (await res.json()) as UserSession;
+      setAuth({
+        loading: false,
+        user,
+      });
 
-        setAuth({
-          loading: false,
-          user,
-        });
-
-        router.push("/");
-      }
+      router.push("/");
     } catch (error) {
       setAuth({
         loading: false,

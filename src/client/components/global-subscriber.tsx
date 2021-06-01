@@ -4,9 +4,9 @@ import {
   onUserCameOnline,
   onUserWentIdle,
   onUserWentOffline,
-} from "../data/users/queries";
+} from "../../data/users/queries";
 import { useSubscription } from "../hooks/use-subscription";
-import { UsersQuery } from "../pages/api/users";
+import { UsersQuery } from "../../pages/api/users";
 import { useAuth } from "./auth-provider";
 
 type UserCameOnlineEvent = UsersQuery["users"][number];

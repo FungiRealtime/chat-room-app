@@ -1,7 +1,7 @@
 import nc from "next-connect";
 import { NextApiRequest, NextApiResponse } from "next";
-import { fungi } from "../../../lib/fungi";
-import prisma from "../../../lib/prisma";
+import { fungi } from "../../../server/utils/fungi";
+import prisma from "../../../server/utils/prisma";
 import { UserStatus } from "@prisma/client";
 
 export default nc<NextApiRequest, NextApiResponse>().post(async (req, res) => {
