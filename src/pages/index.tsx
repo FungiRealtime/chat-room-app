@@ -1,11 +1,11 @@
 import Head from "next/head";
 import TextArea from "react-textarea-autosize";
 import { useEffect, useState } from "react";
-import { useAuth } from "../client/components/auth-provider";
-import { SidebarUser } from "../client/components/sidebar-user";
-import { withAuthenticationRequired } from "../client/components/with-auth";
-import { useSubscription } from "../client/hooks/use-subscription";
-import { trpc } from "../client/utils/trpc";
+import { useAuth } from "~/client/components/auth-provider";
+import { SidebarUser } from "~/client/components/sidebar-user";
+import { withAuthenticationRequired } from "~/client/components/with-auth";
+import { useSubscription } from "~/client/hooks/use-subscription";
+import { trpc } from "~/client/utils/trpc";
 
 function greetUser() {
   let date = new Date();

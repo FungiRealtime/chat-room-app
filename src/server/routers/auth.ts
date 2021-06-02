@@ -1,7 +1,7 @@
 import { UserStatus } from ".prisma/client";
 import { httpError } from "@trpc/server";
 import { z } from "zod";
-import { createRouter } from "../../pages/api/trpc/[trpc]";
+import { createRouter } from "~/pages/api/trpc/[trpc]";
 import { fungi } from "../utils/fungi";
 import { magic } from "../utils/magic";
 import { UserSession } from "../utils/session";

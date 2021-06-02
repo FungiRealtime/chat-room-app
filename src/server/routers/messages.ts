@@ -1,6 +1,6 @@
 import { httpError } from "@trpc/server";
 import { z } from "zod";
-import { createRouter } from "../../pages/api/trpc/[trpc]";
+import { createRouter } from "~/pages/api/trpc/[trpc]";
 import { fungi } from "../utils/fungi";
 
 export let messagesRouter = createRouter().mutation("sendMessage", {

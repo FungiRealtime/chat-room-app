@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { createNicknameFromEmail } from "../lib/users";
+import { createNicknameFromEmail } from "../src/server/utils/users";
 
 let prisma = new PrismaClient();
 

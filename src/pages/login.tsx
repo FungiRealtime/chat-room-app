@@ -1,10 +1,10 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { useAuth } from "../client/components/auth-provider";
-import { useFungiClient } from "../client/components/fungi-client-provider";
-import { magic } from "../client/utils/magic";
-import { trpc } from "../client/utils/trpc";
+import { useAuth } from "~/client/components/auth-provider";
+import { useFungiClient } from "~/client/components/fungi-client-provider";
+import { magic } from "~/client/utils/magic";
+import { trpc } from "~/client/utils/trpc";
 
 export default function Login() {
   let { user, setAuth, loading } = useAuth();

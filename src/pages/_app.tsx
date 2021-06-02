@@ -1,15 +1,15 @@
 import "../../styles/globals.css";
 import type { AppProps } from "next/app";
-import { Auth, AuthProvider } from "../client/components/auth-provider";
 import { FungiClient } from "@fungi-realtime/core";
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
-import { FungiClientProvider } from "../client/components/fungi-client-provider";
-import { magic } from "../client/utils/magic";
-import { GlobalSubscriber } from "../client/components/global-subscriber";
 import { withTRPC } from "@trpc/next";
 import { ReactQueryDevtools } from "react-query/devtools";
-import { trpc } from "../client/utils/trpc";
+import { trpc } from "~/client/utils/trpc";
+import { Auth, AuthProvider } from "~/client/components/auth-provider";
+import { magic } from "~/client/utils/magic";
+import { FungiClientProvider } from "~/client/components/fungi-client-provider";
+import { GlobalSubscriber } from "~/client/components/global-subscriber";
 
 let wsAddress =
   process.env.NODE_ENV === "production" ? "..." : "ws://localhost:8080";

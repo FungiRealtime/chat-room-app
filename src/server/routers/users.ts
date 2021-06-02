@@ -1,6 +1,6 @@
 import { UserStatus } from ".prisma/client";
 import { httpError } from "@trpc/server";
-import { createRouter } from "../../pages/api/trpc/[trpc]";
+import { createRouter } from "~/pages/api/trpc/[trpc]";
 
 export let usersRouter = createRouter().query("online", {
   async resolve({ ctx }) {

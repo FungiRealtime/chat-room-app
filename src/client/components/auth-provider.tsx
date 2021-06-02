@@ -5,7 +5,7 @@ import {
   SetStateAction,
   useContext,
 } from "react";
-import type { UserSession } from "../../server/utils/session";
+import type { UserSession } from "~/server/utils/session";
 
 export type Auth = {
   loading: boolean;

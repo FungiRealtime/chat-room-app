@@ -1,8 +1,13 @@
+import { UserStatus } from ".prisma/client";
 import clsx from "clsx";
-import { UsersQuery } from "../../pages/api/users";
 
 type SidebarUserProps = {
-  user: UsersQuery["users"][number];
+  user: {
+    id: string;
+    nickname: string;
+    status: UserStatus;
+    avatarColor: string;
+  };
 };
 
 let DARK = "#111827";
@@ -22,7 +27,11 @@ export function SidebarUser({ user }: SidebarUserProps) {
             className={clsx(
               "w-2.5 h-2.5 rounded-full",
 
-              user.status === "ONLINE" ? "bg-green-500" : "bg-red-700"
+              user.status === UserStatus.ONLINE
+                ? "bg-green-500"
+                : user.status === UserStatus.IDLE
+                ? "bg-red-700"
+                : null
             )}
           />
           <span className="sr-only">

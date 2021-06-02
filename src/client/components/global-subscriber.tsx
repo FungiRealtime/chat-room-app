@@ -1,7 +1,15 @@
+import { UserStatus } from ".prisma/client";
 import { useEffect } from "react";
 import { useQueryClient } from "react-query";
 import { useSubscription } from "../hooks/use-subscription";
 import { useAuth } from "./auth-provider";
+
+type UserCameOnlineEvent = {
+  id: string;
+  nickname: string;
+  status: string;
+  avatarColor: string;
+};
 
 type UserWentIdleEvent = {
   id: string;
@@ -10,6 +18,12 @@ type UserWentIdleEvent = {
 type UserWentOfflineEvent = {
   id: string;
 };
+
+type UsersQuery = {
+  users: UserCameOnlineEvent[];
+};
+
+let onlineUsersQueryKey = ["users.online", null, "TRPC_QUERY"];
 
 export function GlobalSubscriber() {
   let { user } = useAuth();
@@ -22,10 +36,17 @@ export function GlobalSubscriber() {
   );
 
   useEffect(() => {
-    notificationsChannel?.bind(
+    notificationsChannel?.bind<UserCameOnlineEvent>(
       "user-came-online",
       (user) => {
-        console.log(user);
+        queryClient.setQueryData<UsersQuery>(
+          onlineUsersQueryKey,
+          (previousData) => {
+            return {
+              users: [user, ...(previousData?.users ?? [])],
+            };
+          }
+        );
       },
       {
         replace: true,
@@ -34,8 +55,25 @@ export function GlobalSubscriber() {
 
     notificationsChannel?.bind<UserWentIdleEvent>(
       "user-went-idle",
-      (user) => {
-        console.log(user);
+      ({ id }) => {
+        queryClient.setQueryData<UsersQuery>(
+          onlineUsersQueryKey,
+          (previousData) => {
+            return {
+              users:
+                previousData?.users.map((user) => {
+                  if (user.id === id) {
+                    return {
+                      ...user,
+                      status: UserStatus.IDLE,
+                    };
+                  }
+
+                  return user;
+                }) ?? [],
+            };
+          }
+        );
       },
       {
         replace: true,
@@ -44,8 +82,15 @@ export function GlobalSubscriber() {
 
     notificationsChannel?.bind<UserWentOfflineEvent>(
       "user-went-offline",
-      (user) => {
-        console.log(user);
+      ({ id }) => {
+        queryClient.setQueryData<UsersQuery>(
+          onlineUsersQueryKey,
+          (previousData) => {
+            return {
+              users: previousData?.users.filter((user) => user.id !== id) ?? [],
+            };
+          }
+        );
       },
       {
         replace: true,
