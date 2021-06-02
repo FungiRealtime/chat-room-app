@@ -1,15 +1,7 @@
 import { useEffect } from "react";
 import { useQueryClient } from "react-query";
-import {
-  onUserCameOnline,
-  onUserWentIdle,
-  onUserWentOffline,
-} from "../../data/users/queries";
 import { useSubscription } from "../hooks/use-subscription";
-import { UsersQuery } from "../../pages/api/users";
 import { useAuth } from "./auth-provider";
-
-type UserCameOnlineEvent = UsersQuery["users"][number];
 
 type UserWentIdleEvent = {
   id: string;
@@ -30,18 +22,20 @@ export function GlobalSubscriber() {
   );
 
   useEffect(() => {
-    notificationsChannel?.bind<UserCameOnlineEvent>(
+    notificationsChannel?.bind(
       "user-came-online",
       (user) => {
-        onUserCameOnline(queryClient, user);
+        console.log(user);
       },
-      { replace: true }
+      {
+        replace: true,
+      }
     );
 
     notificationsChannel?.bind<UserWentIdleEvent>(
       "user-went-idle",
       (user) => {
-        onUserWentIdle(queryClient, user.id);
+        console.log(user);
       },
       {
         replace: true,
@@ -51,7 +45,7 @@ export function GlobalSubscriber() {
     notificationsChannel?.bind<UserWentOfflineEvent>(
       "user-went-offline",
       (user) => {
-        onUserWentOffline(queryClient, user.id);
+        console.log(user);
       },
       {
         replace: true,

@@ -18,8 +18,8 @@ function MyApp({ Component, pageProps }: AppProps) {
   let router = useRouter();
   let fungiClientRef = useRef<FungiClient>();
   let [isConnectionEstablished, setIsConnectionEstablished] = useState(false);
-  let authorize = trpc.useMutation("authorize");
-  let logout = trpc.useMutation("logout");
+  let authorize = trpc.useMutation("auth.authorize");
+  let logout = trpc.useMutation("auth.logout");
 
   let [auth, setAuth] = useState<Auth>({
     loading: true,

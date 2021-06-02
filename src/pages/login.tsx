@@ -11,7 +11,7 @@ export default function Login() {
   let router = useRouter();
   let fungiClient = useFungiClient();
   let [email, setEmail] = useState("");
-  let login = trpc.useMutation("login");
+  let login = trpc.useMutation("auth.login");
 
   // Redirect to / if user is logged in.
   useEffect(() => {

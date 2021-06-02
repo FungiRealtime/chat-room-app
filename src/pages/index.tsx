@@ -35,10 +35,10 @@ type Message = {
 
 function Home() {
   let { user } = useAuth();
-  let { data } = trpc.useQuery(["users"], { staleTime: Infinity });
+  let { data } = trpc.useQuery(["users.online"], { staleTime: Infinity });
   let [content, setContent] = useState("");
   let [messages, setMessages] = useState<Message[]>([]);
-  let sendMessage = trpc.useMutation("sendMessage");
+  let sendMessage = trpc.useMutation("messages.sendMessage");
   let { channel, isSubscribing, isSubscribed } =
     useSubscription("private-messages");
 
