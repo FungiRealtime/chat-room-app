@@ -1,5 +1,6 @@
 import { httpError } from "@trpc/server";
 import { z } from "zod";
+import { nanoid as createId } from "nanoid";
 import { createRouter } from "~/pages/api/trpc/[trpc]";
 import { fungi } from "../utils/fungi";
 
@@ -15,7 +16,9 @@ export let messagesRouter = createRouter().mutation("sendMessage", {
     let { content } = input;
 
     await fungi.trigger("private-messages", "user-sent-message", {
+      id: createId(),
       content,
+      timestamp: new Date().toISOString(),
       author: {
         id: ctx.user.id,
         avatarColor: ctx.user.avatarColor,

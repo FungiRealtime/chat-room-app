@@ -58,7 +58,7 @@ export default function Login() {
 
       <div className="flex flex-col items-center justify-center w-full max-w-[25rem] mx-auto">
         <h1 className="text-3xl font-bold text-gray-300">
-          Log in to Fungi Chat Room
+          Enter Fungi Chat Room
         </h1>
 
         <form
