@@ -42,7 +42,7 @@ function Home() {
   let { channel } = useSubscription("private-messages");
 
   let handleSubmit = () => {
-    if (!user) return;
+    if (!user || !content.trim()) return;
 
     setContent("");
 
