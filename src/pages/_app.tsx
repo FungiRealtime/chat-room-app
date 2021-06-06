@@ -12,7 +12,9 @@ import { FungiClientProvider } from "~/client/components/fungi-client-provider";
 import { GlobalSubscriber } from "~/client/components/global-subscriber";
 
 let wsAddress =
-  process.env.NODE_ENV === "production" ? "..." : "ws://localhost:8080";
+  process.env.NODE_ENV === "production"
+    ? "wss://chatroom-fungi.fungirealti.me"
+    : "ws://localhost:8080";
 
 function MyApp({ Component, pageProps }: AppProps) {
   let router = useRouter();
@@ -88,7 +90,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 export default withTRPC((_ctx) => {
   let url =
     process.env.NODE_ENV === "production"
-      ? `...`
+      ? `https://chatroom.fungirealti.me/api/trpc`
       : "http://localhost:3000/api/trpc";
 
   return {
