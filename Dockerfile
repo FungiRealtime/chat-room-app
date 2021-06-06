@@ -11,6 +11,13 @@ FROM node:lts-alpine AS builder
 WORKDIR /app
 COPY . .
 COPY --from=deps /app/node_modules ./node_modules
+
+# NEXT_PUBLIC environment variables must be available
+# at build time for them to be available to the Next.js app
+# at runtime.
+ARG NEXT_PUBLIC_MAGIC_PUBLISHABLE_KEY
+ENV NEXT_PUBLIC_MAGIC_PUBLISHABLE_KEY=$NEXT_PUBLIC_MAGIC_PUBLISHABLE_KEY
+
 RUN npm run build
 
 # Production image, copy all the files and run next
